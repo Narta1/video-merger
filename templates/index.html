@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Video Merger - Combine Image and Audio{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title mb-0">
+                    <i class="fas fa-upload me-2"></i>Create Video from Image and Audio
+                </h2>
+            </div>
+            <div class="card-body">
+                {% if download_ready %}
+                    <!-- Download Section -->
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-success mb-3">Video Ready!</h3>
+                        <p class="text-muted mb-4">Your video has been successfully created and is ready for download.</p>
+
+                        <div class="d-flex gap-3 justify-content-center">
+                            <a href="{{ url_for('download_file', filename=filename) }}" class="btn btn-success btn-lg">
+                                <i class="fas fa-download me-2"></i>Download Video
+                            </a>
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-plus me-2"></i>Create Another Video
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Upload Form -->
+                    <form action="{{ url_for('upload_files') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="image" class="form-label">
+                                        <i class="fas fa-image me-2"></i>Select Image File
+                                    </label>
+                                    <input type="file" class="form-control" id="image" name="image" 
+                                           accept=".png,.jpg,.jpeg,.gif" required>
+                                    <div class="form-text">
+                                        Supported formats: PNG, JPG, JPEG, GIF (Max: 100MB)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="audio" class="form-label">
+                                        <i class="fas fa-music me-2"></i>Select Audio File
+                                    </label>
+                                    <input type="file" class="form-control" id="audio" name="audio" 
+                                           accept=".mp3,.wav,.aac,.m4a" required>
+                                    <div class="form-text">
+                                        Supported formats: MP3, WAV, AAC, M4A (Max: 100MB)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Preview Section -->
+                        <div class="row mb-4" id="previewSection" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-image me-2"></i>Image Preview
+                                        </h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <img id="imagePreview" class="img-fluid rounded" style="max-height: 200px;" alt="Image preview">
+                                        <div id="imageInfo" class="mt-2 text-muted small"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-music me-2"></i>Audio Preview
+                                        </h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <audio id="audioPreview" controls class="w-100 mb-2"></audio>
+                                        <div id="audioInfo" class="text-muted small"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Section -->
+                        <div id="progressSection" style="display: none;">
+                            <div class="mb-3">
+                                <h5><i class="fas fa-cog fa-spin me-2"></i>Processing Video...</h5>
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" style="width: 100%"></div>
+                                </div>
+                                <div class="text-muted mt-2">
+                                    Please wait while we merge your image and audio into a video. This may take a few minutes depending on file sizes.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-play me-2"></i>Create Video
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- URL Input Form -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-link me-2"></i>Use Image and Audio URLs
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('generate_from_urls') }}" method="POST">
+                                <div class="mb-3">
+                                    <label for="image_url" class="form-label">Image URL:</label>
+                                    <input type="url" class="form-control" id="image_url" name="image_url" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="audio_url" class="form-label">Audio URL:</label>
+                                    <input type="url" class="form-control" id="audio_url" name="audio_url" required>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="fas fa-cloud-download-alt me-2"></i>Generate Video from URLs
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Information Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>How it works
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-upload text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">1. Upload Files</h6>
+                            <p class="text-muted small">Select an image and audio file from your device</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-cogs text-warning" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">2. Processing</h6>
+                            <p class="text-muted small">Our system combines them using FFmpeg</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-download text-success" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">3. Download</h6>
+                            <p class="text-muted small">Get your MP4 video file ready to share</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-image me-2"></i>Supported Image Formats</h6>
+                        <p class="text-muted small">PNG, JPG, JPEG, GIF</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-music me-2"></i>Supported Audio Formats</h6>
+                        <p class="text-muted small">MP3, WAV, AAC, M4A</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
